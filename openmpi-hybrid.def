@@ -1,0 +1,54 @@
+Bootstrap: debootstrap
+OSVersion: jammy
+MirrorURL: http://us.archive.ubuntu.com/ubuntu/
+
+%files
+  mpitest.c /opt
+  mpitest_sendrecv.c /opt
+
+%environment
+  # Point to OMPI binaries, libraries, man pages
+  export OMPI_DIR=/opt/ompi
+  export PATH="$OMPI_DIR/bin:$PATH"
+  export LD_LIBRARY_PATH="$OMPI_DIR/lib:$LD_LIBRARY_PATH"
+  export MANPATH="$OMPI_DIR/share/man:$MANPATH"
+
+%post
+  echo "Installing required packages..."
+  export DEBIAN_FRONTEND=noninteractive
+  export LC_ALL=C.UTF-8
+  export LANG=C.UTF-8
+  export LANGUAGE=C.UTF-8
+
+  apt-get update 
+  apt-get -y upgrade
+  apt-get -y install --reinstall locales
+  dpkg-reconfigure -fnoninteractive locales
+  update-locale --reset LANG="\$LANG" LC_ALL="\$LC_ALL" LANGUAGE="\$LANGUAGE"
+
+  apt-get -y install apt-utils
+  apt-get -y install build-essential python3-dev
+  apt-get install -y wget git bash gcc gfortran g++ make file bzip2 
+
+  # Information about the version of Open MPI to use
+  export OMPI_VERSION=4.0.3
+  export OMPI_SHORT_VERSION=4.0
+  export OMPI_URL="https://download.open-mpi.org/release/open-mpi/v${OMPI_SHORT_VERSION}/openmpi-$OMPI_VERSION.tar.bz2"
+  export OMPI_DIR=/opt/ompi
+
+  echo "Installing Open MPI"
+  mkdir -p /tmp/ompi
+  mkdir -p /opt
+  # Download
+  cd /tmp/ompi && wget -O openmpi-$OMPI_VERSION.tar.bz2 $OMPI_URL && tar -xjf openmpi-$OMPI_VERSION.tar.bz2
+  # Compile and install
+  cd /tmp/ompi/openmpi-$OMPI_VERSION && ./configure --prefix=$OMPI_DIR && make -j$(nproc) install
+
+  # Set env variables so we can compile our application
+  export PATH=$OMPI_DIR/bin:$PATH
+  export LD_LIBRARY_PATH=$OMPI_DIR/lib:$LD_LIBRARY_PATH
+
+  echo "Compiling the MPI applications..."
+  cd /opt
+  mpicc -o mpitest           mpitest.c
+  mpicc -o mpitest_sendrecv  mpitest_sendrecv.c
