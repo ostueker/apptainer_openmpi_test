@@ -30,6 +30,18 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
   apt-get -y install build-essential python3-dev
   apt-get install -y wget git bash gcc gfortran g++ make file bzip2 
 
+  # software-properities-common is required for apt-add-repository...
+  apt install -y software-properties-common
+  # libpmi2 and firedrake-install depend on universe repo...
+  apt-add-repository -y universe
+  apt update -y
+  # install libslurm, libpmi2, libpmix, libhwloc
+  apt-get -y install libslurm-dev \
+    libpmi2-0 libpmi2-0-dev libpmix-bin libpmix-dev \
+    libhwloc-common libhwloc-dev \
+    libfabric-bin libfabric-dev libfabric1  \
+    libucx-dev libucx0
+
   # Information about the version of Open MPI to use
   export OMPI_VERSION=4.0.3
   export OMPI_SHORT_VERSION=4.0
@@ -43,8 +55,10 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
   cd /tmp/ompi && wget -O openmpi-$OMPI_VERSION.tar.bz2 $OMPI_URL && tar -xjf openmpi-$OMPI_VERSION.tar.bz2
   # Compile and install
   cd /tmp/ompi/openmpi-$OMPI_VERSION && \
-  ./configure --prefix=$OMPI_DIR && \
-  make -j$(nproc) install
+  ./configure --prefix=$OMPI_DIR --with-hwloc=external --without-usnic \
+    --with-slurm  --with-pmi  --with-ofi  --with-ucx \
+    && \
+  make -j$(nproc) install || exit 1
 
   # Set env variables so we can compile our application
   export PATH=$OMPI_DIR/bin:$PATH

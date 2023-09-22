@@ -11,43 +11,51 @@ different nodes on an HPC cluster
 
 ```bash
 sudo apptainer build --fix-perms openmpi-hybrid.sif openmpi-hybrid.def
+
+sudo apptainer build --fix-perms openmpi-hybrid-slurm.sif openmpi-hybrid-slurm.def
 ```
 
 
 ## Slurm Jobscript to run the test-cases inside
 
-```
+```bash
 #!/bin/bash
 #SBATCH --time=0-00:15:00
 #SBATCH --nodes=2
-#SBATCH --ntasks-per-node=40
+#SBATCH --ntasks-per-node=4
 #SBATCH --mem-per-cpu=1000M
 
 module load apptainer
-CONTAINER="openmpi-hybrid.sif"
-SCRIPT=""
+#CONTAINER="openmpi-hybrid.sif"
+CONTAINER="openmpi-hybrid-slurm.sif"
 
+# create $CACHE_DIR on all participating nodes
 CACHE_DIR="${SLURM_TMPDIR}/.cache"
-mkdir $CACHE_DIR
+srun --ntasks-per-node=1 mkdir -p $CACHE_DIR
 
-OVERLAY="${SLURM_TMPDIR}/overlay"
-mkdir $OVERLAY
+MPIRUN="srun --mpi=pmi2"
 
-echo "running test /opt/mpitest"
-time srun --mpi=pmi2 apptainer  exec \
-     --bind="/localscratch:/localscratch" \
-     --bind="${CACHE_DIR}:/fd/.cache" \
-     --overlay="${OVERLAY}" \
-     --home $PWD  \
-     "${CONTAINER}"  /opt/mpitest
+APPTAINER_OPTS="\
+  --bind="${SLURM_TMPDIR}:/tmp,${CACHE_DIR}:/fd/.cache" \
+  --home $PWD \
+"
 
-echo "========================================="
-echo "running test /opt/mpitest_sendrecv"
-time srun --mpi=pmi2 apptainer  exec \
-     --bind="/localscratch:/localscratch" \
-     --bind="${CACHE_DIR}:/fd/.cache" \
-     --overlay="${OVERLAY}" \
-     --home $PWD  \
-     "${CONTAINER}"  /opt/mpitest_sendrecv
+for TEST in /opt/mpitest /opt/mpitest_sendrecv ; do
 
+     echo "running:"
+     echo "  $MPIRUN apptainer exec \\"
+     echo "    $APPTAINER_OPTS \\"
+     echo "    ${CONTAINER} $TEST"
+     echo ""
+     echo "========================================="
+     echo ""
+
+     time ${MPIRUN}  apptainer  exec \
+       ${APPTAINER_OPTS} \
+       "${CONTAINER}"  $TEST
+
+     echo ""
+     echo "========================================="
+     echo ""
+done
 ```
