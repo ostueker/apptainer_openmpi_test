@@ -37,25 +37,21 @@ MPIRUN="srun --mpi=pmi2"
 
 APPTAINER_OPTS="\
   --bind="${SLURM_TMPDIR}:/tmp,${CACHE_DIR}:/fd/.cache" \
-  --home $PWD \
-"
+  --home $PWD "
 
 for TEST in /opt/mpitest /opt/mpitest_sendrecv ; do
-
-     echo "running:"
-     echo "  $MPIRUN apptainer exec \\"
-     echo "    $APPTAINER_OPTS \\"
-     echo "    ${CONTAINER} $TEST"
-     echo ""
-     echo "========================================="
-     echo ""
-
-     time ${MPIRUN}  apptainer  exec \
-       ${APPTAINER_OPTS} \
-       "${CONTAINER}"  $TEST
-
-     echo ""
-     echo "========================================="
-     echo ""
+    echo "running:"
+    echo "  ${MPIRUN} apptainer exec \\"
+    echo "    ${APPTAINER_OPTS} \\"
+    echo "    ${CONTAINER} $TEST"
+    echo ""
+    echo "========================================="
+    echo ""
+    time  ${MPIRUN}  apptainer  exec \
+            ${APPTAINER_OPTS} \
+            ${CONTAINER}  $TEST
+    echo ""
+    echo "========================================="
+    echo ""
 done
 ```
