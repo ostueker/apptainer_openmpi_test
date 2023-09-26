@@ -15,6 +15,9 @@ APPTAINER_OPTS="\
   --home $PWD \
 "
 
+# suppress PMIX ERROR: "ERROR in file gds_ds12_lock_pthread.c"
+export PMIX_MCA_gds=^ds12
+
 for CONTAINER in openmpi-hybrid.sif openmpi-hybrid-slurm.sif ; do
   for MPIRUN in mpirun mpiexec "srun --mpi=pmi2" ; do
     for TEST in /opt/mpitest /opt/mpitest_sendrecv ; do
