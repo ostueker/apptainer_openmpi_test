@@ -7,6 +7,11 @@ The container itself should be started with `mpirun` or `srun`
 so that multiple copies of the container can run on several
 different nodes on an HPC cluster
 
+Note that running Open MPI applications in containers works
+with both `mpirun` and `mpiexec`. In order to use `srun`,
+the Open MPI needs to have been compiled with `--with-slurm`
+(see `openmpi-hybrid-slurm.def``).
+
 ## Building Open MPI container from scratch (bootstrapped)
 
 ```bash
@@ -14,7 +19,6 @@ sudo apptainer build --fix-perms openmpi-hybrid.sif openmpi-hybrid.def
 
 sudo apptainer build --fix-perms openmpi-hybrid-slurm.sif openmpi-hybrid-slurm.def
 ```
-
 
 ## Slurm Jobscript to run the test-cases inside
 

@@ -4,8 +4,8 @@
 #SBATCH --ntasks-per-node=4
 #SBATCH --mem-per-cpu=1000M
 
-module load StdEnv/2020 gcc/9.3.0 openmpi/4.0.3
-module load apptainer
+module purge
+module load StdEnv/2020 gcc/9.3.0 openmpi/4.0.3 apptainer
 
 # create $CACHE_DIR on all participating nodes
 CACHE_DIR="${SLURM_TMPDIR}/.cache"
