@@ -25,6 +25,7 @@ sudo apptainer build --fix-perms openmpi-hybrid-slurm.sif openmpi-hybrid-slurm.d
 #SBATCH --ntasks-per-node=4
 #SBATCH --mem-per-cpu=1000M
 
+module load StdEnv/2020 gcc/9.3.0 openmpi/4.0.3
 module load apptainer
 #CONTAINER="openmpi-hybrid.sif"
 CONTAINER="openmpi-hybrid-slurm.sif"
@@ -34,6 +35,11 @@ CACHE_DIR="${SLURM_TMPDIR}/.cache"
 srun --ntasks-per-node=1 mkdir -p $CACHE_DIR
 
 MPIRUN="srun --mpi=pmi2"
+
+# suppress PMIX ERROR: "ERROR in file gds_ds12_lock_pthread.c"
+export PMIX_MCA_gds="^ds12"
+# The btl_vader_single_copy_mechanism can't be used with containers.
+export OMPI_MCA_btl_vader_single_copy_mechanism="none"
 
 APPTAINER_OPTS="\
   --bind="${SLURM_TMPDIR}:/tmp,${CACHE_DIR}:/fd/.cache" \

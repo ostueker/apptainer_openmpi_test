@@ -5,6 +5,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
 %files
   mpitest.c /opt
   mpitest_sendrecv.c /opt
+  reduce_stddev.c /opt
 
 %environment
   # Point to OMPI binaries, libraries, man pages
@@ -68,3 +69,4 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
   cd /opt
   mpicc -o mpitest           mpitest.c
   mpicc -o mpitest_sendrecv  mpitest_sendrecv.c
+  mpicc -o reduce_stddev     reduce_stddev.c     -lm
